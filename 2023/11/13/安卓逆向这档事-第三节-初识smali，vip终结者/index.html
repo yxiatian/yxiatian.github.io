@@ -1,0 +1,831 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="一、基础知识介绍1.什么是JVM、Dalvik、ARTJVM是JAVA虚拟机，运行JAVA字节码程序Dalvik是Google专门为Android设计的一个虚拟机，Dalvik有专属的文件执行格式dex(Dalvik executable)Art(Android Runtime)相当于Dalvik的升级版，本质与Dalvik无异 2.smali及其语法smali是Dalvik的寄存器语言，smal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="安卓逆向这档事-第三节.初识smali，vip终结者">
+<meta property="og:url" content="http://example.com/2023/11/13/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/index.html">
+<meta property="og:site_name" content="夏天">
+<meta property="og:description" content="一、基础知识介绍1.什么是JVM、Dalvik、ARTJVM是JAVA虚拟机，运行JAVA字节码程序Dalvik是Google专门为Android设计的一个虚拟机，Dalvik有专属的文件执行格式dex(Dalvik executable)Art(Android Runtime)相当于Dalvik的升级版，本质与Dalvik无异 2.smali及其语法smali是Dalvik的寄存器语言，smal">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%BA%8C%E8%AF%BE%E3%80%81%E5%88%9D%E5%A7%8BAPK%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E3%80%81%E5%8F%8C%E5%BC%80%E3%80%81%E6%B1%89%E5%8C%96%E3%80%81%E5%9F%BA%E7%A1%80%E4%BF%AE%E6%94%B9/52pj.jpg">
+<meta property="article:published_time" content="2023-11-12T21:17:47.000Z">
+<meta property="article:modified_time" content="2023-11-12T21:19:14.890Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2023/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%BA%8C%E8%AF%BE%E3%80%81%E5%88%9D%E5%A7%8BAPK%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E3%80%81%E5%8F%8C%E5%BC%80%E3%80%81%E6%B1%89%E5%8C%96%E3%80%81%E5%9F%BA%E7%A1%80%E4%BF%AE%E6%94%B9/52pj.jpg">
+  
+  
+  
+  <title>安卓逆向这档事-第三节.初识smali，vip终结者 - 夏天</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>夏天的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="安卓逆向这档事-第三节.初识smali，vip终结者"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-11-13 05:17" pubdate>
+          2023年11月13日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          42 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">安卓逆向这档事-第三节.初识smali，vip终结者</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="一、基础知识介绍"><a href="#一、基础知识介绍" class="headerlink" title="一、基础知识介绍"></a>一、基础知识介绍</h1><h2 id="1-什么是JVM、Dalvik、ART"><a href="#1-什么是JVM、Dalvik、ART" class="headerlink" title="1.什么是JVM、Dalvik、ART"></a>1.什么是JVM、Dalvik、ART</h2><p>JVM是JAVA虚拟机，运行JAVA字节码程序<br>Dalvik是Google专门为Android设计的一个虚拟机，Dalvik有专属的文件执行格式dex(Dalvik executable)<br>Art(Android Runtime)相当于Dalvik的升级版，本质与Dalvik无异</p>
+<h2 id="2-smali及其语法"><a href="#2-smali及其语法" class="headerlink" title="2.smali及其语法"></a>2.smali及其语法</h2><p>smali是Dalvik的寄存器语言，smali代码是dex反编译而来的。</p>
+<p>关键字</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>.class</td>
+<td>类名</td>
+</tr>
+<tr>
+<td>.super</td>
+<td>父类名，继承的上级类名名称</td>
+</tr>
+<tr>
+<td>.source</td>
+<td>源名</td>
+</tr>
+<tr>
+<td>.field</td>
+<td>变量</td>
+</tr>
+<tr>
+<td>.method</td>
+<td>方法名</td>
+</tr>
+<tr>
+<td>.register</td>
+<td>寄存器</td>
+</tr>
+<tr>
+<td>.end method</td>
+<td>方法名的结束</td>
+</tr>
+<tr>
+<td>public</td>
+<td>公有</td>
+</tr>
+<tr>
+<td>protected</td>
+<td>半公开，只有同一家人才能用</td>
+</tr>
+<tr>
+<td>private</td>
+<td>私有，只能自己使用</td>
+</tr>
+<tr>
+<td>.parameter</td>
+<td>方法参数</td>
+</tr>
+<tr>
+<td>.prologue</td>
+<td>方法开始</td>
+</tr>
+<tr>
+<td>.line xxx</td>
+<td>位于第xxx行</td>
+</tr>
+</tbody></table>
+<p>数据类型对应</p>
+<table>
+<thead>
+<tr>
+<th>smali类型</th>
+<th>java类型</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>V</td>
+<td>void</td>
+<td>无返回值</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>boolean</td>
+<td>布尔值类型，返回0或1</td>
+</tr>
+<tr>
+<td>B</td>
+<td>byte</td>
+<td>字节类型，返回字节</td>
+</tr>
+<tr>
+<td>S</td>
+<td>short</td>
+<td>短整数类型，返回数字</td>
+</tr>
+<tr>
+<td>C</td>
+<td>char</td>
+<td>字符类型，返回字符</td>
+</tr>
+<tr>
+<td>I</td>
+<td>int</td>
+<td>整数类型，返回数字</td>
+</tr>
+<tr>
+<td>J</td>
+<td>long （64位 需要2个寄存器存储）</td>
+<td>长整数类型，返回数字</td>
+</tr>
+<tr>
+<td>F</td>
+<td>float</td>
+<td>单浮点类型，返回数字</td>
+</tr>
+<tr>
+<td>D</td>
+<td>double （64位 需要2个寄存器存储）</td>
+<td>双浮点类型，返回数字</td>
+</tr>
+<tr>
+<td>string</td>
+<td>String</td>
+<td>文本类型，返回字符串</td>
+</tr>
+<tr>
+<td>Lxxx&#x2F;xxx&#x2F;xxx</td>
+<td>object</td>
+<td>对象类型，返回对象</td>
+</tr>
+</tbody></table>
+<p>常用指令</p>
+<table>
+<thead>
+<tr>
+<th>关键字</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>const</td>
+<td>重写整数属性，真假属性内容，只能是数字类型</td>
+</tr>
+<tr>
+<td>const-string</td>
+<td>重写字符串内容</td>
+</tr>
+<tr>
+<td>const-wide</td>
+<td>重写长整数类型，多用于修改到期时间。</td>
+</tr>
+<tr>
+<td>return</td>
+<td>返回指令</td>
+</tr>
+<tr>
+<td>if-eq</td>
+<td>全称equal(a&#x3D;b)，比较寄存器ab内容，相同则跳</td>
+</tr>
+<tr>
+<td>if-ne</td>
+<td>全称not equal(a!&#x3D;b)，ab内容不相同则跳</td>
+</tr>
+<tr>
+<td>if-eqz</td>
+<td>全称equal zero(a&#x3D;0)，z即是0的标记，a等于0则跳</td>
+</tr>
+<tr>
+<td>if-nez</td>
+<td>全称not equal zero(a!&#x3D;0)，a不等于0则跳</td>
+</tr>
+<tr>
+<td>if-ge</td>
+<td>全称greater equal(a&gt;&#x3D;b)，a大于或等于则跳</td>
+</tr>
+<tr>
+<td>if-le</td>
+<td>全称little equal(a&lt;&#x3D;b)，a小于或等于则跳</td>
+</tr>
+<tr>
+<td>goto</td>
+<td>强制跳到指定位置</td>
+</tr>
+<tr>
+<td>switch</td>
+<td>分支跳转，一般会有多个分支线，并根据指令跳转到适当位置</td>
+</tr>
+<tr>
+<td>iget</td>
+<td>获取寄存器数据</td>
+</tr>
+</tbody></table>
+<p>其余指令可用语法工具查询</p>
+<h1 id="二、快速定位、修改判断、强制跳转、修改寄存器的值"><a href="#二、快速定位、修改判断、强制跳转、修改寄存器的值" class="headerlink" title="二、快速定位、修改判断、强制跳转、修改寄存器的值"></a>二、快速定位、修改判断、强制跳转、修改寄存器的值</h1><p>定位方法功能：搜索弹窗关键字、抓取按钮id<br>修改方法：修改判断、强制跳转、修改寄存器的值<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h2 id="1、定位方法功能"><a href="#1、定位方法功能" class="headerlink" title="1、定位方法功能"></a>1、定位方法功能</h2><p>查看关键值<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-1.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h3 id="1-1、搜索弹窗关键字"><a href="#1-1、搜索弹窗关键字" class="headerlink" title="1.1、搜索弹窗关键字"></a>1.1、搜索弹窗关键字</h3><h4 id="1-1-1、使用jadx-gui逆向分析搜索快速定位"><a href="#1-1-1、使用jadx-gui逆向分析搜索快速定位" class="headerlink" title="1.1.1、使用jadx-gui逆向分析搜索快速定位"></a>1.1.1、使用jadx-gui逆向分析搜索快速定位</h4><p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-2.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-3.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h4 id="1-1-2、使用MT管理器逆向分析搜索快速定位"><a href="#1-1-2、使用MT管理器逆向分析搜索快速定位" class="headerlink" title="1.1.2、使用MT管理器逆向分析搜索快速定位"></a>1.1.2、使用MT管理器逆向分析搜索快速定位</h4><p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-4.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-5.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-6.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-7.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-8.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h3 id="1-2、抓取按钮id"><a href="#1-2、抓取按钮id" class="headerlink" title="1.2、抓取按钮id"></a>1.2、抓取按钮id</h3><p>使用开发者助手工具，进入到此关卡界面，进行界面资源分析</p>
+<p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-9.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<p>复制</p>
+<p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-10.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-11.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-12.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<p>往上翻一翻</p>
+<p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-13.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h2 id="2、修改判断、强制跳转、修改寄存器的值"><a href="#2、修改判断、强制跳转、修改寄存器的值" class="headerlink" title="2、修改判断、强制跳转、修改寄存器的值"></a>2、修改判断、强制跳转、修改寄存器的值</h2><p>使用jadx-gui逆向Java代码中的分析<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/%E9%80%86%E5%90%91Android%E5%88%86%E6%9E%90%E6%B5%81%E7%A8%8B%E5%9B%BE.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>但是MT管理器或者其他一些可反编译dex的工具都转换成了smali代码<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-14.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>一下是对jadx-gui工具反编译dex之后的注注释</p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><code class="hljs smali">//一个私有、静态、不可变的方法   方法名<br><span class="hljs-keyword">.method</span><span class="hljs-keyword"> private</span><span class="hljs-keyword"> static</span><span class="hljs-keyword"> final</span> onCreate$lambda-2(<span class="hljs-class">Lkotlin/jvm/internal/Ref$IntRef;</span><span class="hljs-class">Lcom/zj/wuaipojie/ui/ChallengeSecond;</span><span class="hljs-class">Landroid/widget/ImageView;</span><span class="hljs-class">Landroid/widget/ImageView;</span><span class="hljs-class">Landroid/widget/ImageView;</span><span class="hljs-class">Landroid/view/View;</span>)Z<br><span class="hljs-keyword">    .registers</span> 7    // 寄存器的数量<br><br><span class="hljs-keyword">    .line</span> 33    // 代码所在行数<br>   <span class="hljs-built_in"> iget </span>   v1, v1, <span class="hljs-class">Lkotlin/jvm/internal/Ref$IntRef;</span>-&gt;element:I <span class="hljs-comment"># field@97ee    // 读取v1（第一个参数）中element的值赋值给v1（第二个参数）</span><br><br>   <span class="hljs-built_in"> const/4 </span>    v6, 0x1 // v6赋值1<br><br>   <span class="hljs-built_in"> const/16 </span>   v0, 0xa // v0赋值10，在16进制里a表示10<br><br>   <span class="hljs-built_in"> if-ge </span>  v1, v0,<span class="hljs-keyword"> :cond_0015</span>  // 判断v1的值是否大于或等于 v0的值（即v1的值是否大于等于10），如果大于或等于则跳转到:cond_0015<br><br><span class="hljs-keyword">    .line</span> 34    // 以下是常见的Toast弹窗代码<br><br>   <span class="hljs-built_in"> move-object </span>v1, v2  // 自动对象引用v1到v2<br><br>   <span class="hljs-built_in"> check-cast </span> v1, <span class="hljs-class">Landroid/content/Context;</span> <span class="hljs-comment"># type@0063   // 检查Contex对象引用</span><br><br>   <span class="hljs-built_in"> const-string </span>   v0, <span class="hljs-string">&quot;请先获取10个硬币哦&quot;</span> <span class="hljs-comment"># string@ed09  // 弹窗文本信息，把&quot;&quot;里的字符串数据赋值给v0</span><br><br>   <span class="hljs-built_in"> check-cast </span> v0, <span class="hljs-class">Ljava/lang/CharSequence;</span> <span class="hljs-comment"># type@14e5    // 检查CharSequence对象引用</span><br><br>   <span class="hljs-built_in"> invoke-static </span>      &#123;v1, v0, v6&#125;, <span class="hljs-class">Landroid/widget/Toast;</span>-&gt;makeText(<span class="hljs-class">Landroid/content/Context;</span>, <span class="hljs-class">Ljava/lang/CharSequence;</span>, I)<span class="hljs-class">Landroid/widget/Toast;</span> <span class="hljs-comment"># method@11ae  </span><br>    // 将弹窗文本、显示时间等信息传给v1<br><br>   <span class="hljs-built_in"> move-result-object </span> v1  // 结果传递给v1<br><br>   <span class="hljs-built_in"> invoke-virtual </span> &#123;v1&#125;, <span class="hljs-class">Landroid/widget/Toast;</span>-&gt;show()V <span class="hljs-comment"># method@11af    // 当看到这个Toast;-&gt;show()你就应该反应过来这里是弹窗代码</span><br><br><span class="hljs-keyword">     .line</span> 36<br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v2&#125;, <span class="hljs-class">Lcom/zj/wuaipojie/ui/ChallengeSecond;</span>-&gt;isvip()Z <span class="hljs-comment"># method@9cc3 //判断isvip方法的返回值是否为真(即结果是否为1)</span><br><br>   <span class="hljs-built_in"> move-result </span>        v1  //结果赋值给v1<br><br>   <span class="hljs-built_in"> if-eqz </span>             v1,<span class="hljs-keyword"> :cond_0043</span>  //如果结果为0则跳转cond_0043地址<br><br><span class="hljs-keyword">    .line</span> 37<br><br>   <span class="hljs-built_in"> check-cast </span>         v2, <span class="hljs-class">Landroid/content/Context;</span> <span class="hljs-comment"># type@0063</span><br><br>   <span class="hljs-built_in"> const-string </span>       v1, <span class="hljs-string">&quot;当前已经是大会员了哦！&quot;</span> <span class="hljs-comment"># string@ed00</span><br><br>   <span class="hljs-built_in"> check-cast </span>         v1, <span class="hljs-class">Ljava/lang/CharSequence;</span> <span class="hljs-comment"># type@14e5</span><br><br>   <span class="hljs-built_in"> invoke-static </span>      &#123;v2, v1, v6&#125;, <span class="hljs-class">Landroid/widget/Toast;</span>-&gt;makeText(<span class="hljs-class">Landroid/content/Context;</span>, <span class="hljs-class">Ljava/lang/CharSequence;</span>, I)<span class="hljs-class">Landroid/widget/Toast;</span> <span class="hljs-comment"># method@11ae</span><br><br>   <span class="hljs-built_in"> move-result-object </span> v1<br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v1&#125;, <span class="hljs-class">Landroid/widget/Toast;</span>-&gt;show()V <span class="hljs-comment"># method@11af</span><br><br>   <span class="hljs-built_in"> const </span>              v1, 0x7f0d0018  //在arsc中的id索引，这个值可以进行查询<br><br><span class="hljs-keyword">    .line</span> 38<br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v3, v1&#125;, <span class="hljs-class">Landroid/widget/ImageView;</span>-&gt;setImageResource(I)V <span class="hljs-comment"># method@0fe1    //设置图片资源</span><br><br>   <span class="hljs-built_in"> const </span>              v1, 0x7f0d0008<br><br><span class="hljs-keyword">    .line</span> 39<br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v3, v1&#125;, <span class="hljs-class">Landroid/widget/ImageView;</span>-&gt;setImageResource(I)V <span class="hljs-comment"># method@0fe1</span><br><br>   <span class="hljs-built_in"> const </span>              v1, 0x7f0d0008<br><br><span class="hljs-keyword">    .line</span> 40<br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v5, v1&#125;, <span class="hljs-class">Landroid/widget/ImageView;</span>-&gt;setImageResource(I)V <span class="hljs-comment"># method@0fe1</span><br><br><span class="hljs-keyword">    .line</span> 41<br><br>   <span class="hljs-built_in"> sget-object </span>        v1, <span class="hljs-class">Lcom/zj/wuaipojie/util/SPUtils;</span>-&gt;INSTANCE:<span class="hljs-class">Lcom/zj/wuaipojie/util/SPUtils;</span> <span class="hljs-comment"># field@957d</span><br><br>   <span class="hljs-built_in"> const/4 </span>            v3, 0x2 //v3赋值2<br><br>   <span class="hljs-built_in"> const-string </span>       v4, <span class="hljs-string">&quot;level&quot;</span> <span class="hljs-comment"># string@b13d      //sp的索引</span><br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v1, v2, v4, v3&#125;, <span class="hljs-class">Lcom/zj/wuaipojie/util/SPUtils;</span>-&gt;saveInt(<span class="hljs-class">Landroid/content/Context;</span>, <span class="hljs-class">Ljava/lang/String;</span>, I)V <span class="hljs-comment"># method@9d49 //写入数据</span><br><br>   <span class="hljs-built_in"> goto </span>              <span class="hljs-keyword"> :goto_0050</span>  //跳转地址<br><br><span class="hljs-keyword">    .line</span> 44<br><br>   <span class="hljs-built_in"> check-cast </span>         v2, <span class="hljs-class">Landroid/content/Context;</span> <span class="hljs-comment"># type@0063</span><br><br>   <span class="hljs-built_in"> const-string </span>       v1, <span class="hljs-string">&quot;请先充值大会员哦！&quot;</span> <span class="hljs-comment"># string@ed07</span><br><br>   <span class="hljs-built_in"> check-cast </span>         v1, <span class="hljs-class">Ljava/lang/CharSequence;</span> <span class="hljs-comment"># type@14e5</span><br><br>   <span class="hljs-built_in"> invoke-static </span>      &#123;v2, v1, v6&#125;, <span class="hljs-class">Landroid/widget/Toast;</span>-&gt;makeText(<span class="hljs-class">Landroid/content/Context;</span>, <span class="hljs-class">Ljava/lang/CharSequence;</span>, I)<span class="hljs-class">Landroid/widget/Toast;</span> <span class="hljs-comment"># method@11ae</span><br><br>   <span class="hljs-built_in"> move-result-object </span> v1<br><br>   <span class="hljs-built_in"> invoke-virtual </span>     &#123;v1&#125;, <span class="hljs-class">Landroid/widget/Toast;</span>-&gt;show()V <span class="hljs-comment"># method@11af</span><br><br>   <span class="hljs-built_in"> return </span>             v6  //返回V6的值<span class="hljs-keyword"></span><br><span class="hljs-keyword"></span><br><span class="hljs-keyword">.end method</span> //方法结束<br><br>//判断是否是大会员的方法<br><span class="hljs-keyword">.method</span><span class="hljs-keyword"> public</span><span class="hljs-keyword"> final</span> isvip()Z<br><br><span class="hljs-keyword">    .registers</span> 2<br><br>       <span class="hljs-built_in"> const/4 </span>            v0, 0   //v0赋值0，0就是false<br><br>       <span class="hljs-built_in"> return </span>             v0  //返回v0的值<span class="hljs-keyword"></span><br><span class="hljs-keyword"></span><br><span class="hljs-keyword">.end method</span><br></code></pre></td></tr></table></figure>
+<h2 id="2-1、修改判断"><a href="#2-1、修改判断" class="headerlink" title="2.1、修改判断"></a>2.1、修改判断</h2><p>这里的 </p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs smali">const/16 v0, 0xa <span class="hljs-built_in"></span><br><span class="hljs-built_in">if-ge </span>p0, v0,<span class="hljs-keyword"> :cond_15</span><br></code></pre></td></tr></table></figure>
+<p>意思是v0的值为10<br>p0大于等于v0（10）则跳转（p0是硬币数量）<br>改成 if-le<br>p0小于于等于v0（10）则跳转（p0是硬币数量）<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-15.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-16.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>注释掉判断是否为大会员（默认为false），不让它判断跳转，直接执行后面是大会员的代码<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-17.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>最终效果<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-18.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h2 id="2-2、强制跳转"><a href="#2-2、强制跳转" class="headerlink" title="2.2、强制跳转"></a>2.2、强制跳转</h2><p>goto 强制跳转到制定位置<br>在判断硬币数量之前插入强制跳转，跳转到判断是否是大会员之后，直接执行成为大会员之后的代码<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-19.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-20.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>最终效果<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-21.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h2 id="2-3、修改寄存器的值"><a href="#2-3、修改寄存器的值" class="headerlink" title="2.3、修改寄存器的值"></a>2.3、修改寄存器的值</h2><p>这里是判断硬币的数量，和被比较的值，v0值为10，修改成0，0x0<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-22.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-23.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>判断是否是大会员的方法，默认为0就是false，改成1让它为true<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-24.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>最终效果<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-25.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<h1 id="三、课后小作业"><a href="#三、课后小作业" class="headerlink" title="三、课后小作业"></a>三、课后小作业</h1><p>丑小鸭师傅的demo<br>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1cUInoi">https://pan.baidu.com/s/1cUInoi</a> 密码：07p9<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-26.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>定位关键词：登录失败</p>
+<p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-27.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>使用jadx-gui逆向分析可以直接看到账密（hfdcxy&#x2F;1234）<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-28.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>smali代码分析<br>判断输入的用户名是是否和v0的值相等，如果相等就进入密码的判断，如果密码判断成功就进入登录成功的代码里<br>如果有一个不相等就跳入cond_1b登录失败</p>
+<p><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-29.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-30.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-31.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+<p>直接在第一次判断之前加入跳转，跳转到if-eqz v0, :cond_1b判断账密是否正确之后的代码里<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-32.png" srcset="/img/loading.gif" lazyload alt="Alt text"><br>最终效果<br><img src="/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%B8%89%E8%8A%82-%E5%88%9D%E8%AF%86smali%EF%BC%8Cvip%E7%BB%88%E7%BB%93%E8%80%85/image-33.png" srcset="/img/loading.gif" lazyload alt="Alt text"></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Android/" class="print-no-link">#Android</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>安卓逆向这档事-第三节.初识smali，vip终结者</div>
+      <div>http://example.com/2023/11/13/安卓逆向这档事-第三节-初识smali，vip终结者/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年11月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%BA%8C%E8%AF%BE%E3%80%81%E5%88%9D%E5%A7%8BAPK%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E3%80%81%E5%8F%8C%E5%BC%80%E3%80%81%E6%B1%89%E5%8C%96%E3%80%81%E5%9F%BA%E7%A1%80%E4%BF%AE%E6%94%B9/" title="安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改">
+                        <span class="hidden-mobile">安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

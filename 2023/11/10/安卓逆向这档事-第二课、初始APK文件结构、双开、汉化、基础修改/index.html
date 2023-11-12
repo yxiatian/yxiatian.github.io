@@ -1,0 +1,731 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1、APK结构apk 全称 Android Package，它相当于一个压缩文件，只要在电脑上将apk后缀改为zip即可解压。    文件 注释    assets目录 存放APK的静态资源文件，比如视频，音频，图片等   lib 目录 armeabi-v7a基本通用所有android设备，arm64-v8a只适用于64位的android设备，x86常见用于android模拟器，其目录下的.so文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改">
+<meta property="og:url" content="http://example.com/2023/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%BA%8C%E8%AF%BE%E3%80%81%E5%88%9D%E5%A7%8BAPK%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E3%80%81%E5%8F%8C%E5%BC%80%E3%80%81%E6%B1%89%E5%8C%96%E3%80%81%E5%9F%BA%E7%A1%80%E4%BF%AE%E6%94%B9/index.html">
+<meta property="og:site_name" content="夏天">
+<meta property="og:description" content="1、APK结构apk 全称 Android Package，它相当于一个压缩文件，只要在电脑上将apk后缀改为zip即可解压。    文件 注释    assets目录 存放APK的静态资源文件，比如视频，音频，图片等   lib 目录 armeabi-v7a基本通用所有android设备，arm64-v8a只适用于64位的android设备，x86常见用于android模拟器，其目录下的.so文">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%BA%8C%E8%AF%BE%E3%80%81%E5%88%9D%E5%A7%8BAPK%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E3%80%81%E5%8F%8C%E5%BC%80%E3%80%81%E6%B1%89%E5%8C%96%E3%80%81%E5%9F%BA%E7%A1%80%E4%BF%AE%E6%94%B9/52pj.jpg">
+<meta property="article:published_time" content="2023-11-10T00:27:39.000Z">
+<meta property="article:modified_time" content="2023-11-10T00:48:33.790Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2023/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E8%BF%99%E6%A1%A3%E4%BA%8B-%E7%AC%AC%E4%BA%8C%E8%AF%BE%E3%80%81%E5%88%9D%E5%A7%8BAPK%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E3%80%81%E5%8F%8C%E5%BC%80%E3%80%81%E6%B1%89%E5%8C%96%E3%80%81%E5%9F%BA%E7%A1%80%E4%BF%AE%E6%94%B9/52pj.jpg">
+  
+  
+  
+  <title>安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改 - 夏天</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>夏天的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-11-10 08:27" pubdate>
+          2023年11月10日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="1、APK结构"><a href="#1、APK结构" class="headerlink" title="1、APK结构"></a>1、APK结构</h1><p>apk 全称 Android Package，它相当于一个压缩文件，只要在电脑上将apk后缀改为zip即可解压。</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>assets目录</td>
+<td>存放APK的静态资源文件，比如视频，音频，图片等</td>
+</tr>
+<tr>
+<td>lib 目录</td>
+<td>armeabi-v7a基本通用所有android设备，arm64-v8a只适用于64位的android设备，x86常见用于android模拟器，其目录下的.so文件是c或c++编译的动态链接库文件</td>
+</tr>
+<tr>
+<td>META_INF目录</td>
+<td>保存应用的签名信息，签名信息可以验证APK文件的完整性，相当于APK的身份证(验证文件是否又被修改)</td>
+</tr>
+<tr>
+<td>res目录</td>
+<td>res目录存放资源文件，包括图片，字符串等等，APK的脸蛋由他的layout文件设计<br/>layout 文件夹用来存放布局文件，布局文件用来描述应用程序的界面结构。<br/>values 文件夹用来存放值资源文件，值资源文件用来存放应用程序中使用的常量值和颜色信息。</td>
+</tr>
+<tr>
+<td>AndroidMainfest.xml文件</td>
+<td>APK的应用清单信息，它描述了应用的名字，版本，权限，引用的库文件等等信息</td>
+</tr>
+<tr>
+<td>classes.dex文件</td>
+<td>classes.dex是java源码编译后生成的java字节码文件，APK运行的主要逻辑</td>
+</tr>
+<tr>
+<td>resources.arsc文件</td>
+<td>resources.arsc是编译后的二进制资源文件，它是一个映射表，映射着资源和id，通过R文件中的id就可以找到对应的资源</td>
+</tr>
+</tbody></table>
+<h1 id="2、双开及原理"><a href="#2、双开及原理" class="headerlink" title="2、双开及原理"></a>2、双开及原理</h1><p>双开：简单来说，就是手机同时运行两个或多个相同的应用，例如同时运行两个微信等</p>
+<table>
+<thead>
+<tr>
+<th>原理</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>修改包名</td>
+<td>让手机系统认为这是2个APP，这样的话就能生成2个数据存储路径，此时的多开就等于你打开了两个互不干扰的APP</td>
+</tr>
+<tr>
+<td>修改Framework</td>
+<td>对于有系统修改权限的厂商，可以修改Framework来实现双开的目的，例如：小米自带的应用多开</td>
+</tr>
+<tr>
+<td>通过虚拟化技术实现</td>
+<td>虚拟Framework层、虚拟文件系统、模拟Android对组件的管理、虚拟应用进程管理 等一整套虚拟技术，将APK复制一份到虚拟空间中运行，例如：平行空间</td>
+</tr>
+<tr>
+<td>以插件机制运行</td>
+<td>利用反射替换，动态代{过}{滤}理，hook了系统的大部分与system—server进程通讯的函数，以此作为“欺上瞒下”的目的，欺骗系统“以为”只有一个apk在运行，瞒过插件让其“认为”自己已经安装。例如：VirtualApp</td>
+</tr>
+</tbody></table>
+<h2 id="2-1、修改包名实现双开"><a href="#2-1、修改包名实现双开" class="headerlink" title="2.1、修改包名实现双开"></a>2.1、修改包名实现双开</h2><h3 id="2-1-1-使用NP管理器自带功能修改包名实现双开"><a href="#2-1-1-使用NP管理器自带功能修改包名实现双开" class="headerlink" title="2.1.1 使用NP管理器自带功能修改包名实现双开"></a>2.1.1 使用NP管理器自带功能修改包名实现双开</h3><p>使用NP管理器提取APK安装包<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image.png width=38%/></p>
+<p>点击apk文件-&gt;功能-&gt;APK共存 输入新包名或者直接使用给出的新包名-&gt;确定-&gt;点击新生成的apk文件-&gt;安装<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-1.png width=38%/><br>注意：因为此双开方式是修改包名实现的，动了应用的签名信息，如果开发者做了签名校验，打开更改过包名的应用会有可能会出现闪退崩溃的情况<br>可以使用开发者助手查看包名与签名的MD5<br>包名：com.zj.wuaipojie<br>签名MD5：A3:1F:3A:26:F7:0B:34:84:F0:7A:8B:A9:42:AA:1E:0D<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-3.png width=38%/><br>包名：com.zj.wuaipojiep<br>签名MD5：68:17:0B:6B:26:E5:23:38:BC:07:AE:66:53:03:CC:36<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-4.png width=38%/></p>
+<h3 id="2-1-2-使用MT管理器手动修改包名实现双开"><a href="#2-1-2-使用MT管理器手动修改包名实现双开" class="headerlink" title="2.1.2 使用MT管理器手动修改包名实现双开"></a>2.1.2 使用MT管理器手动修改包名实现双开</h3><p>点击APK文件-&gt;查看-&gt;点击AndroidMainifest.xml文件-&gt;打开方式 反编译-&gt;修改package的值就是新的包名<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-5.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-6.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-7.png width=38%/><br>MT管理器重新签名后的变化<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-8.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-9.png width=38%/><br>包名：com.zj.wuaipojie.ok<br>签名MD5：E8:9B:15:8E:4B:CF:98:8E:BD:09:EB:83:F5:37:8E:87<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-10.png width=38%/></p>
+<h1 id="3、汉化APK"><a href="#3、汉化APK" class="headerlink" title="3、汉化APK"></a>3、汉化APK</h1><p>汉化：使用专门的工具对外文版的软件资源进行读取、翻译、修改、回写等一系列处理，使软件的菜单、对话框、提示等用户界面显示为中文，而程序的内核和功能保持不变，这个过程即为软件汉化</p>
+<p>基本上字符串都是在arsc里，建议一键汉化，然后再润色。 少量没汉化到的字符串参考视频中的方法定位去逐个汉化。<br>这里还需要注意的是，如果要直装应用，那就应该先签名安装，看看是否有签名校验导致的闪退！！！<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-11.png width=85%/></p>
+<h2 id="3-1、XMl汉化"><a href="#3-1、XMl汉化" class="headerlink" title="3.1、XMl汉化"></a>3.1、XMl汉化</h2><p>打开课件中的Demo，点击挑战-&gt;第一关，先来汉化这一句<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-12.png width=38%/><br>点击APK文件-&gt;查看-&gt;右上的三个点-&gt;XML搜索-&gt;点击搜索到的文件，再点击Jf.xml-&gt;反编译-&gt;修改此处，回编译-&gt;签名，返回到APK文件点击安装，直接安装会提示“安装失败，与已安装APK签名不一致！”，卸载原来的应用，然后再来这里进行安装<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-13.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-14.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-15.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-16.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-17.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-18.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-19.png width=38%/><br>修改后的效果<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-20.png width=38%/></p>
+<h2 id="3-2、Arsc汉化"><a href="#3-2、Arsc汉化" class="headerlink" title="3.2、Arsc汉化"></a>3.2、Arsc汉化</h2><p>汉化这句俄语，使用开发者助手应用进行提取<br>Я не могу поверить, что это работает, почему?<br>查看APK点击右上角三个点-&gt;搜索-&gt;高级搜索-&gt;翻译模式-&gt;找到需要翻译的俄语，修改过后退出（保存退出）*2，签名-&gt;安装<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-21.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-22.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-23.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-24.png width=38%/><br>在我看来，困惑是学习过程的第一阶段，这说明固有知识的局限开始被打破了。你要直面新的信息，这些新的信息会挑战你现有的观念和行为模式。由此产生的焦虑是让你改变的动力，很可能也会开启你的创造力。<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-25.png width=38%/><br>最终效果<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-26.png width=38%/></p>
+<h2 id="3-1、DEX汉化"><a href="#3-1、DEX汉化" class="headerlink" title="3.1、DEX汉化"></a>3.1、DEX汉化</h2><p>先使用开发者助手提取这段话，回到MT管理器查看APK-&gt;右上角三个点 搜索（高级搜索），打开方式 Dex编辑器++ -&gt;搜索，编辑保存，退回 保存 编译dex 签名 安装<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-27.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-28.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-29.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-30.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-31.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-32.png width=38%/><br>最终效果<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-33.png width=38%/></p>
+<h1 id="4、初识AndroidMainfest-xml"><a href="#4、初识AndroidMainfest-xml" class="headerlink" title="4、初识AndroidMainfest.xml"></a>4、初识AndroidMainfest.xml</h1><p>AndroidManifest.xml文件是整个应用程序的信息描述文件，定义了应用程序中包含的Activity,Service,Content provider和BroadcastReceiver组件信息。每个应用程序在根目录下必须包含一个AndroidManifest.xml文件，且文件名不能修改。它描述了package中暴露的组件，他们各自的实现类，各种能被处理的数据和启动位置。</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>versionCode</td>
+<td>版本号，主要用来更新，例如:12</td>
+</tr>
+<tr>
+<td>versionName</td>
+<td>版本名，给用户看的，例如:1.2</td>
+</tr>
+<tr>
+<td>package</td>
+<td>包名，例如：com.zj.52pj.demo</td>
+</tr>
+<tr>
+<td>uses-permission android:name&#x3D;””</td>
+<td>应用权限，例如：android.permission.INTERNET 代表网络权限</td>
+</tr>
+<tr>
+<td>android:label&#x3D;”@string&#x2F;app_name”</td>
+<td>应用名称</td>
+</tr>
+<tr>
+<td>android:icon&#x3D;”@mipmap&#x2F;ic_launcher”</td>
+<td>应用名称</td>
+</tr>
+<tr>
+<td>android:debuggable&#x3D;”true”</td>
+<td>应用是否开启debug权限</td>
+</tr>
+</tbody></table>
+<img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-34.png width=38%/>
+
+<h1 id="5、修改图标、修改名字-课后小作业"><a href="#5、修改图标、修改名字-课后小作业" class="headerlink" title="5、修改图标、修改名字 + 课后小作业"></a>5、修改图标、修改名字 + 课后小作业</h1><h2 id="5-1、修改图标、应用名字"><a href="#5-1、修改图标、应用名字" class="headerlink" title="5.1、修改图标、应用名字"></a>5.1、修改图标、应用名字</h2><p>adb传入图片-&gt;打开np管理器-&gt;点击APK文件-&gt;功能（通用编辑）-&gt;修改后保存-&gt;这个时候的签名有所变化，变成了np管理器默认的签名，所以需要卸载原来的应用<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-35.png width=80%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-36.png width=38%/><br>最终效果<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-37.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-38.png width=38%/></p>
+<h2 id="5-2、课后小作业-替换第一关挑战中的图片"><a href="#5-2、课后小作业-替换第一关挑战中的图片" class="headerlink" title="5.2、课后小作业-替换第一关挑战中的图片"></a>5.2、课后小作业-替换第一关挑战中的图片</h2><p>res目录存放资源文件，包括图片，字符串等等，所以这个挑战的图片就在res这个目录里，也可使用开发者助手辅助，然后搜索<br>打开APK文件进入res目录，找到需要修改的图片cf.jpg，右边目录找到图片目录，重命名为cf.jpg然后复制过去-&gt;确定（自动）-&gt;安装，这时是MT管理器默认的应用签名<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-39.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-40.png width=38%/><br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-41.png width=38%/><br>最终效果<br><img src=安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/image-42.png width=38%/></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Android/" class="print-no-link">#Android</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改</div>
+      <div>http://example.com/2023/11/10/安卓逆向这档事-第二课、初始APK文件结构、双开、汉化、基础修改/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年11月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/06/%E5%88%9D%E8%AF%95Frida/" title="初试Frida">
+                        <span class="hidden-mobile">初试Frida</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
